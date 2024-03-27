@@ -42,14 +42,17 @@ def progress_hook(d):
 
 def get_info(url: str, raw_dump: bool = False) -> 'MediaItemInfo':
     ydl_opts = {
+        'username': 'oauth2',
+        'password': '',
         'logger': logger,
+        'noplaylist': True,
         'quiet': True,
         'no_progress': True,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
         logger.info('Getting info: "%s"', url)
-        raw_info = ydl.extract_info(url, download=False)
+        raw_info = ydl.extract_info(url, download=False, process=False)
 
     item_info = MediaItemInfo(
         language=raw_info['language'],
@@ -78,9 +81,12 @@ def download_audio(url: str) -> 'MediaItemInfo':
     os.makedirs(item_dir, exist_ok=True)
 
     ydl_opts = {
+        'username': 'oauth2',
+        'password': '',
         'logger': logger,
         'quiet': True,
         'no_progress': True,
+        'noplaylist': True,
         'paths': {'home': item_dir},
         'outtmpl': {'default': 'video.%(ext)s'},
         'keepvideo': True,

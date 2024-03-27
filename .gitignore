@@ -7,3 +7,5 @@ downloads/*
 *.mp4
 *.webm
 .env
+build/
+.cache/
