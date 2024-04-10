@@ -27,6 +27,7 @@ class TranscribeData(ApiInputTranscribeData):
 
 class MediaItemInfoPaths(BaseModel):
     audio: str = None
+    audio_mono: str = None
     video: str = None
     raw_info: str = None
 
@@ -39,6 +40,3 @@ class MediaItemInfo(BaseModel):
     original_url: str
     uploader_url: str
     paths: 'MediaItemInfoPaths' = MediaItemInfoPaths()
-
-
-

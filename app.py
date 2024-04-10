@@ -4,10 +4,11 @@ from typing import Optional
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 import uvicorn
+import yt_dlp
 
 from src.utils import logger_config
-from src.media import download_audio
-from src.tts import transcribe_audio
+from src.media import download_audio, get_info, stereo_to_mono
+from src.tts import transcribe_audio, simple_transcribe
 from src.models import AuthData, TranscribeData, ApiInputTranscribeData
 from src.settings import DOWNLOADS_DIR
 
@@ -39,8 +40,9 @@ async def get_transcribe(input: TranscribeInput, request: Request):
     )
 
     item_info = download_audio(input.url)
+    item_info.paths.audio_mono = stereo_to_mono(item_info.paths.audio)
 
-    if os.path.getsize(item_info.paths.audio) > 25000000:
+    if os.path.getsize(item_info.paths.audio_mono) > 25000000:
         return {"error": "Audio file is too large, longer than 25mb"}
 
     if input.tts_data.language:
@@ -78,3 +80,11 @@ async def health_check():
 
 if __name__ == "__main__":
     uvicorn.run("app:api", host="0.0.0.0", port=8080, reload=True)
+    # info = get_info('https://youtu.be/uoupp8kHQY0?list=TLGGMreXo8PtjG4yNzAzMjAyNA', True)
+    # help(yt_dlp.postprocessor.ffmpeg.FFmpegExtractAudioPP)
+    # download_audio('https://youtu.be/uoupp8kHQY0?list=TLGGMreXo8PtjG4yNzAzMjAyNA')
+    # path = '/home/mariusz/code/projects/my_yt-dlp-api/downloads/wes-roth/test_opus/lowestOpus.webm'
+    # path='./tmp/lowestOpus.webm'
+
+
+    # simple_transcribe(path)

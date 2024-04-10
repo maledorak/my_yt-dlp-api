@@ -9,7 +9,7 @@ from src.utils import slugify, logger_config
 logger = logger_config(__name__)
 
 # https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#embedding-yt-dlp
-def format_selector(ctx):
+def format_selector(ctx): # Not used for now
     """ Select the best video and the best audio that won't result in an mkv.
     NOTE: This is just an example and does not handle all cases """
 
@@ -35,15 +35,22 @@ def format_selector(ctx):
         'protocol': f'{best_video["protocol"]}+{best_audio["protocol"]}'
     }
 
-def progress_hook(d):
-    if d['status'] == 'finished':
-        logger.info('Done downloading, now post-processing ...')
-
+def audio_selector(ctx):
+    """ Select all audio formats """
+    formats = ctx.get('formats')
+    opus = [f for f in formats if f['acodec'] == 'opus' and f['vcodec'] == 'none']
+    yield opus[0] # lowest opus format will be better than other formats
 
 def get_info(url: str, raw_dump: bool = False) -> 'MediaItemInfo':
     ydl_opts = {
         'username': 'oauth2',
         'password': '',
+        'youtube_include_dash_manifest': False, # Opus audio is in dash manifest
+        'youtube_include_hls_manifest': False,
+        'allow_unplayable_formats': False,
+        # 'hls_prefer_native': False,
+        'simulate': True,
+        'sleep_interval_requests': 1,
         'logger': logger,
         'noplaylist': True,
         'quiet': True,
@@ -52,7 +59,7 @@ def get_info(url: str, raw_dump: bool = False) -> 'MediaItemInfo':
 
     with YoutubeDL(ydl_opts) as ydl:
         logger.info('Getting info: "%s"', url)
-        raw_info = ydl.extract_info(url, download=False, process=False)
+        raw_info = ydl.extract_info(url, download=True, process=True)
 
     item_info = MediaItemInfo(
         language=raw_info['language'],
@@ -87,22 +94,21 @@ def download_audio(url: str) -> 'MediaItemInfo':
         'quiet': True,
         'no_progress': True,
         'noplaylist': True,
+        'youtube_include_dash_manifest': True, # Opus audio is in dash manifest
+        'youtube_include_hls_manifest': False,
         'paths': {'home': item_dir},
         'outtmpl': {'default': 'video.%(ext)s'},
         'keepvideo': True,
-        # 'age_limit': 30,
-        # 'progress_hooks': [progress_hook],
-
-        'format': format_selector,
+        'cachedir': False,
+        'format': audio_selector,
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'm4a',
+            # 'preferredcodec': 'opus',
+            # 'preferredquality': 0.5
         }],
     }
 
-    # help(yt_dlp.postprocessor)
-
-    info.paths.audio = os.path.join(item_dir, 'audio.m4a')
+    info.paths.audio = os.path.join(item_dir, 'audio.webm')
 
     with YoutubeDL(ydl_opts) as ydl:
         logger.info(f'Downloading audio: "{url}"')
@@ -114,7 +120,19 @@ def download_audio(url: str) -> 'MediaItemInfo':
             if errors:
                 logger.error(f'Failed to download audio: {errors}')
                 return None
-            os.rename(os.path.join(item_dir, 'video.m4a'), info.paths.audio)
+            os.rename(os.path.join(item_dir, 'video.webm'), info.paths.audio)
             logger.info(f'Downloaded to "{info.paths.audio}"')
-
     return info
+
+
+def stereo_to_mono(path) -> str:
+    if not os.path.exists(path):
+        raise FileNotFoundError(f'File not found: {path}')
+    
+    if path.endswith('_mono.webm'):
+        return path
+
+    output_path = f'{path}_mono.webm'
+    # 18k for mono opus audio is good enough to transcribe
+    os.system(f'ffmpeg -i {path} -codec:a libopus -b:a 18k -ac 1 {output_path}')
+    return output_path

@@ -19,7 +19,7 @@ export PRINT_HELP_PYSCRIPT
 help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
-VERSION=ffmpeg_6.1.1-ytdlp_2024.03.10
+VERSION=ffmpeg_6.1.1-ytdlp_2024.04.09
 DOCKER_IMAGE=ghcr.io/maledorak/yt-dlp-api:${VERSION}
 
 #%% Docker commands
@@ -30,7 +30,7 @@ build: #% Build the docker image
 	docker build -t ${DOCKER_IMAGE} .
 
 run: #% Run server in the container
-	docker run -p 8080:8080 ${DOCKER_IMAGE}
+	docker run -p 8080:80 ${DOCKER_IMAGE}
 
 run_bash: #% Run bash in the container
 	docker run -it --entrypoint="" ${DOCKER_IMAGE} bash
