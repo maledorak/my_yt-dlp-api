@@ -124,7 +124,6 @@ def download_audio(url: str) -> 'MediaItemInfo':
             logger.info(f'Downloaded to "{info.paths.audio}"')
     return info
 
-
 def stereo_to_mono(path) -> str:
     if not os.path.exists(path):
         raise FileNotFoundError(f'File not found: {path}')
@@ -132,7 +131,9 @@ def stereo_to_mono(path) -> str:
     if path.endswith('_mono.webm'):
         return path
 
-    output_path = f'{path}_mono.webm'
+    name = os.path.basename(path).split('.')[0]
+    item_dir = os.path.dirname(path)
+    output_path = os.path.join(item_dir, f'{name}_mono.webm')
     # 18k for mono opus audio is good enough to transcribe
-    os.system(f'ffmpeg -i {path} -codec:a libopus -b:a 18k -ac 1 {output_path}')
+    os.system(f'ffmpeg -y -i {path} -codec:a libopus -b:a 18k -ac 1 {output_path}')
     return output_path
