@@ -10,3 +10,6 @@ downloads/*
 build/
 .cache/
 tmp/
+.downloads
+.chainlit
+.DS_Store

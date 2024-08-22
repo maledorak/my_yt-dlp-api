@@ -11,7 +11,7 @@ def trans():
     """
     url = 'http://localhost:8080/transcribe'
     data = {
-        'url': 'https://youtu.be/OvzSyaN3zKg',
+        'url': 'https://www.youtube.com/watch?v=Vx65Gdeat-c',
         'auth_data': {
             'openai_api_key': os.getenv('OPENAI_API_KEY'),
             'openai_org_id': os.getenv('OPENAI_ORG_ID')

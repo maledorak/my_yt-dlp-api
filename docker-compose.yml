@@ -1,0 +1,35 @@
+services:
+  ytdlp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      - TZ=Europe/Warsaw
+    volumes:
+      - ./.downloads:/opt/yt-dlp/downloads
+      - ./.cache:/root/.cache/yt-dlp # cache for oauth2 token
+      # - /apps/ytdlp/downloads:/opt/yt-dlp/downloads
+      # - /apps/ytdlp/.cache/yt-dlp:/root/.cache/yt-dlp # cache for oauth2 token
+    networks:
+      - ytdlp
+
+  # front:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "127.0.0.1:4000:8080"
+  #   environment:
+  #     - TZ=Europe/Warsaw
+  #   # volumes:
+  #     # - .:/app/ytdlp
+  #   entrypoint: ["/opt/yt-dlp/venv/bin/chainlit", "run", "front.py"]
+  #   networks:
+  #     - ytdlp
+
+networks:
+  ytdlp:

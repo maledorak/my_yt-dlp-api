@@ -22,6 +22,10 @@ help:
 VERSION=ffmpeg_6.1.1-ytdlp_2024.04.09
 DOCKER_IMAGE=ghcr.io/maledorak/yt-dlp-api:${VERSION}
 
+front:
+	chainlit run front.py -w
+
+
 #%% Docker commands
 image: #% Show the image
 	@echo ${DOCKER_IMAGE}
